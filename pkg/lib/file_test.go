@@ -5,6 +5,7 @@
 package lib
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -64,4 +65,29 @@ func TestFileWithContinuationRecord(t *testing.T) {
 98,+00000000001280000,2,25/
 99,+00000000001280000,1,27/`
 	require.Equal(t, expected, f.String())
+}
+
+func TestBai2FileWithAdhocDetails(t *testing.T) {
+	samplePath := filepath.Join("..", "..", "test", "testdata", "sample4-adhoc-continuations.txt")
+	fd, err := os.Open(samplePath)
+	require.NoError(t, err)
+
+	scan := NewBai2Scanner(fd)
+	f := NewBai2()
+	err = f.Read(&scan)
+
+	require.NoError(t, err)
+	require.NoError(t, f.Validate())
+}
+
+func TestBai2FileWithInvalidTextCharacters(t *testing.T) {
+	samplePath := filepath.Join("..", "..", "test", "testdata", "sample5-invalid-characters-in-text.txt")
+	fd, err := os.Open(samplePath)
+	require.NoError(t, err)
+
+	scan := NewBai2Scanner(fd)
+	f := NewBai2()
+	err = f.Read(&scan)
+
+	require.Equal(t, fmt.Errorf("ERROR parsing account on line 7 (unable to read record type GS)"), err)
 }

@@ -14,15 +14,30 @@ func getIndex(input string) int {
 
 	idx1 := strings.Index(input, ",")
 	idx2 := strings.Index(input, "/")
+	idx3 := strings.Index(input, "\n")
 
+	// If there is no `,` separator in the input, return either the index of the next explicit terminating character (`/`)
+	// or the index of the next newline character, if no terminating character is present.
 	if idx1 == -1 {
-		return idx2
+		if idx2 != -1 {
+			return idx2
+		}
+		return idx3
 	}
 
+	// If a line is terminated with a `/` character and the terminator is BEFORE the next `,` character, return
+	// the index of the `/` character.
 	if idx2 > -1 && idx2 < idx1 {
 		return idx2
 	}
 
+	// If a line is terminated with a `\n` character (and is NOT terminated with a / character) and the terminator is
+	// BEFORE the next `,` character, return the index of the `\n` character.
+	if idx2 < 0 && idx3 > -1 && idx3 < idx1 {
+		return idx3
+	}
+
+	// Otherwise, return the index of the next `,` character. Value will not be `-1` due to earlier function logic.
 	return idx1
 }
 
@@ -76,10 +91,14 @@ func ReadFieldAsInt(input string, start int) (int64, int, error) {
 }
 
 func GetSize(line string) int64 {
-
 	size := strings.Index(line, "/")
 	if size >= 0 {
 		return int64(size + 1)
+	}
+
+	nsize := strings.Index(line, "\n")
+	if nsize >= 0 {
+		return int64(nsize + 1)
 	}
 
 	return int64(size)
